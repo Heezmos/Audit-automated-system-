@@ -1,428 +1,772 @@
-
-import React, { useState, useEffect } from 'react';
-import { AlertCircle, CheckCircle, Clock, FileText, Search, Filter, Download, Eye, Flag, TrendingUp, Users, Building2, BarChart3, Calendar } from 'lucide-react';
-
-const AuditMonitoringSystem = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [audits, setAudits] = useState([
-    { id: 'AUD-2024-001', entity: 'Ministry of Health', type: 'Financial', status: 'In Progress', priority: 'High', assignee: 'John Kamara', startDate: '2024-11-01', progress: 65, issues: 3 },
-    { id: 'AUD-2024-002', entity: 'Education Board', type: 'Compliance', status: 'Pending Review', priority: 'Medium', assignee: 'Fatmata Sesay', startDate: '2024-10-15', progress: 90, issues: 1 },
-    { id: 'AUD-2024-003', entity: 'Public Works Dept', type: 'Performance', status: 'Completed', priority: 'Low', assignee: 'Mohamed Bangura', startDate: '2024-09-20', progress: 100, issues: 0 },
-    { id: 'AUD-2024-004', entity: 'Agriculture Ministry', type: 'Financial', status: 'Flagged', priority: 'Critical', assignee: 'Aminata Koroma', startDate: '2024-11-10', progress: 45, issues: 8 },
-    { id: 'AUD-2024-005', entity: 'Transportation Auth', type: 'Operational', status: 'In Progress', priority: 'Medium', assignee: 'Ibrahim Conteh', startDate: '2024-11-15', progress: 30, issues: 2 },
-  ]);
-  
-  const [issues, setIssues] = useState([
-    { id: 'ISS-001', auditId: 'AUD-2024-004', title: 'Missing documentation for procurement', severity: 'Critical', status: 'Open', reportedDate: '2024-11-20', description: 'Purchase orders worth Le 50M lack proper authorization' },
-    { id: 'ISS-002', auditId: 'AUD-2024-001', title: 'Budget variance exceeds threshold', severity: 'High', status: 'Investigating', reportedDate: '2024-11-18', description: '15% variance in Q3 expenditure requires explanation' },
-    { id: 'ISS-003', auditId: 'AUD-2024-002', title: 'Non-compliance with reporting deadline', severity: 'Medium', status: 'Open', reportedDate: '2024-11-22', description: 'Quarterly reports submitted 10 days late' },
-    { id: 'ISS-004', auditId: 'AUD-2024-004', title: 'Irregularities in payment records', severity: 'Critical', status: 'Escalated', reportedDate: '2024-11-21', description: 'Duplicate payments detected in vendor accounts' },
-  ]);
-
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('All');
-  const [selectedAudit, setSelectedAudit] = useState(null);
-  const [selectedIssue, setSelectedIssue] = useState(null);
-
-  const statusColors = {
-    'In Progress': 'bg-blue-100 text-blue-800',
-    'Pending Review': 'bg-yellow-100 text-yellow-800',
-    'Completed': 'bg-green-100 text-green-800',
-    'Flagged': 'bg-red-100 text-red-800',
-  };
-
-  const priorityColors = {
-    'Critical': 'bg-red-600 text-white',
-    'High': 'bg-orange-500 text-white',
-    'Medium': 'bg-yellow-500 text-white',
-    'Low': 'bg-green-500 text-white',
-  };
-
-  const severityColors = {
-    'Critical': 'text-red-600',
-    'High': 'text-orange-600',
-    'Medium': 'text-yellow-600',
-    'Low': 'text-green-600',
-  };
-
-  const filteredAudits = audits.filter(audit => {
-    const matchesSearch = audit.entity.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         audit.id.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterStatus === 'All' || audit.status === filterStatus;
-    return matchesSearch && matchesFilter;
-  });
-
-  const stats = {
-    total: audits.length,
-    inProgress: audits.filter(a => a.status === 'In Progress').length,
-    flagged: audits.filter(a => a.status === 'Flagged').length,
-    completed: audits.filter(a => a.status === 'Completed').length,
-    criticalIssues: issues.filter(i => i.severity === 'Critical').length,
-  };
-
-  const DashboardView = () => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Total Audits</p>
-              <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
-            </div>
-            <FileText className="w-8 h-8 text-blue-600" />
-          </div>
-        </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">In Progress</p>
-              <p className="text-3xl font-bold text-blue-600">{stats.inProgress}</p>
-            </div>
-            <Clock className="w-8 h-8 text-blue-600" />
-          </div>
-        </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Flagged</p>
-              <p className="text-3xl font-bold text-red-600">{stats.flagged}</p>
-            </div>
-            <Flag className="w-8 h-8 text-red-600" />
-          </div>
-        </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Completed</p>
-              <p className="text-3xl font-bold text-green-600">{stats.completed}</p>
-            </div>
-            <CheckCircle className="w-8 h-8 text-green-600" />
-          </div>
-        </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Critical Issues</p>
-              <p className="text-3xl font-bold text-red-600">{stats.criticalIssues}</p>
-            </div>
-            <AlertCircle className="w-8 h-8 text-red-600" />
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5" />
-            Recent Activity
-          </h3>
-          <div className="space-y-3">
-            {audits.slice(0, 4).map(audit => (
-              <div key={audit.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                <div>
-                  <p className="font-medium text-sm">{audit.entity}</p>
-                  <p className="text-xs text-gray-600">{audit.id} • {audit.type}</p>
-                </div>
-                <span className={`px-2 py-1 rounded text-xs font-medium ${statusColors[audit.status]}`}>
-                  {audit.status}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <AlertCircle className="w-5 h-5" />
-            Critical Issues
-          </h3>
-          <div className="space-y-3">
-            {issues.filter(i => i.severity === 'Critical' || i.severity === 'High').slice(0, 4).map(issue => (
-              <div key={issue.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded">
-                <AlertCircle className={`w-5 h-5 ${severityColors[issue.severity]} flex-shrink-0 mt-0.5`} />
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm">{issue.title}</p>
-                  <p className="text-xs text-gray-600">{issue.auditId} • {issue.reportedDate}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const AuditsView = () => (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="flex-1 w-full sm:w-auto">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Search audits by entity or ID..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </div>
-        
-        <div className="flex gap-2">
-          <select
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-          >
-            <option>All</option>
-            <option>In Progress</option>
-            <option>Pending Review</option>
-            <option>Completed</option>
-            <option>Flagged</option>
-          </select>
-          
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
-            <Download className="w-4 h-4" />
-            Export
-          </button>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Audit ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Entity</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Type</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Priority</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Progress</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Issues</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filteredAudits.map(audit => (
-                <tr key={audit.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{audit.id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{audit.entity}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{audit.type}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[audit.status]}`}>
-                      {audit.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${priorityColors[audit.priority]}`}>
-                      {audit.priority}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 bg-gray-200 rounded-full h-2 w-24">
-                        <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${audit.progress}%` }}></div>
-                      </div>
-                      <span className="text-xs text-gray-600">{audit.progress}%</span>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Service Sierra Leone - Monitoring System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .slide-in { animation: slideIn 0.3s ease-out; }
+        .tab-active { border-bottom: 2px solid #2563eb; color: #2563eb; }
+        .notification-badge { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Audit Service Sierra Leone</h1>
+                        <p class="text-sm text-gray-600">Remote Monitoring & Investigation System</p>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {audit.issues > 0 ? (
-                      <span className="flex items-center gap-1 text-sm text-red-600">
-                        <AlertCircle className="w-4 h-4" />
-                        {audit.issues}
-                      </span>
-                    ) : (
-                      <span className="text-sm text-gray-400">None</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <button 
-                      onClick={() => setSelectedAudit(audit)}
-                      className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                    >
-                      <Eye className="w-4 h-4" />
-                      View
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="relative">
+                        <button onclick="toggleNotifications()" class="relative p-2 text-gray-600 hover:text-gray-900">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                            </svg>
+                            <span id="notificationBadge" class="absolute top-0 right-0 w-5 h-5 bg-red-600 text-white text-xs rounded-full flex items-center justify-center notification-badge">2</span>
+                        </button>
+                        
+                        <div id="notificationPanel" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50 slide-in">
+                            <div class="p-4 border-b border-gray-200">
+                                <h3 class="font-semibold">Notifications</h3>
+                            </div>
+                            <div class="max-h-96 overflow-y-auto">
+                                <div class="p-4 border-b border-gray-100 hover:bg-gray-50 bg-blue-50">
+                                    <p class="text-sm text-gray-900">Critical issue flagged in AUD-2024-004</p>
+                                    <p class="text-xs text-gray-500 mt-1">5 min ago</p>
+                                </div>
+                                <div class="p-4 border-b border-gray-100 hover:bg-gray-50 bg-blue-50">
+                                    <p class="text-sm text-gray-900">AUD-2024-001 milestone approaching</p>
+                                    <p class="text-xs text-gray-500 mt-1">1 hour ago</p>
+                                </div>
+                                <div class="p-4 border-b border-gray-100 hover:bg-gray-50">
+                                    <p class="text-sm text-gray-900">New document uploaded to AUD-2024-002</p>
+                                    <p class="text-xs text-gray-500 mt-1">2 hours ago</p>
+                                </div>
+                                <div class="p-4 hover:bg-gray-50">
+                                    <p class="text-sm text-gray-900">New comment on ISS-002</p>
+                                    <p class="text-xs text-gray-500 mt-1">3 hours ago</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-medium text-gray-900">System Administrator</p>
+                        <p class="text-xs text-gray-600">Last login: Nov 28, 2024</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex gap-8">
+                <button onclick="showTab('dashboard')" id="tab-dashboard" class="tab-button tab-active py-4 px-2 font-medium text-sm border-b-2 border-transparent transition-colors">Dashboard</button>
+                <button onclick="showTab('audits')" id="tab-audits" class="tab-button py-4 px-2 font-medium text-sm border-b-2 border-transparent text-gray-600 hover:text-gray-900 transition-colors">Audits</button>
+                <button onclick="showTab('issues')" id="tab-issues" class="tab-button py-4 px-2 font-medium text-sm border-b-2 border-transparent text-gray-600 hover:text-gray-900 transition-colors">Issues</button>
+                <button onclick="showTab('schedule')" id="tab-schedule" class="tab-button py-4 px-2 font-medium text-sm border-b-2 border-transparent text-gray-600 hover:text-gray-900 transition-colors">Schedule</button>
+                <button onclick="showTab('alerts')" id="tab-alerts" class="tab-button py-4 px-2 font-medium text-sm border-b-2 border-transparent text-gray-600 hover:text-gray-900 transition-colors">Alerts</button>
+                <button onclick="showTab('reports')" id="tab-reports" class="tab-button py-4 px-2 font-medium text-sm border-b-2 border-transparent text-gray-600 hover:text-gray-900 transition-colors">Reports</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Dashboard Tab -->
+        <div id="content-dashboard" class="tab-content">
+            <div class="space-y-6">
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">Total Audits</p>
+                                <p class="text-3xl font-bold text-gray-900">5</p>
+                            </div>
+                            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">In Progress</p>
+                                <p class="text-3xl font-bold text-blue-600">2</p>
+                            </div>
+                            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">Flagged</p>
+                                <p class="text-3xl font-bold text-red-600">1</p>
+                            </div>
+                            <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">Completed</p>
+                                <p class="text-3xl font-bold text-green-600">1</p>
+                            </div>
+                            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">Critical Issues</p>
+                                <p class="text-3xl font-bold text-red-600">2</p>
+                            </div>
+                            <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">Scheduled</p>
+                                <p class="text-3xl font-bold text-purple-600">3</p>
+                            </div>
+                            <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activity Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <h3 class="text-lg font-semibold mb-4">Recent Activity</h3>
+                        <div class="space-y-3" id="recentActivity"></div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <h3 class="text-lg font-semibold mb-4">Critical Issues</h3>
+                        <div class="space-y-3" id="criticalIssues"></div>
+                    </div>
+                </div>
+
+                <!-- Integrations and Schedule -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <h3 class="text-lg font-semibold mb-4">System Integrations</h3>
+                        <div class="space-y-3" id="integrationsList"></div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <h3 class="text-lg font-semibold mb-4">Upcoming Scheduled Audits</h3>
+                        <div class="space-y-3" id="upcomingSchedule"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Audits Tab -->
+        <div id="content-audits" class="tab-content hidden">
+            <div class="space-y-4">
+                <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                    <div class="flex-1 w-full sm:w-auto">
+                        <div class="relative">
+                            <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <input type="text" id="searchAudits" placeholder="Search audits by entity or ID..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" oninput="filterAudits()">
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-2 flex-wrap">
+                        <select id="filterStatus" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" onchange="filterAudits()">
+                            <option>All</option>
+                            <option>In Progress</option>
+                            <option>Pending Review</option>
+                            <option>Completed</option>
+                            <option>Flagged</option>
+                        </select>
+                        
+                        <button onclick="showModal('uploadModal')" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                            </svg>
+                            Upload
+                        </button>
+                        
+                        <button onclick="exportData()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                            Export
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50 border-b border-gray-200">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Audit ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Entity</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Type</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Priority</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Progress</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Documents</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Issues</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200" id="auditsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Issues Tab -->
+        <div id="content-issues" class="tab-content hidden">
+            <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-semibold">Investigation Issues</h2>
+                    <button onclick="showModal('newIssueModal')" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>
+                        </svg>
+                        Report New Issue
                     </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-
-  const IssuesView = () => (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Investigation Issues</h2>
-        <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2">
-          <Flag className="w-4 h-4" />
-          Report New Issue
-        </button>
-      </div>
-
-      <div className="space-y-3">
-        {issues.map(issue => (
-          <div key={issue.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:border-blue-300 transition-colors">
-            <div className="flex items-start justify-between mb-2">
-              <div className="flex items-start gap-3 flex-1">
-                <AlertCircle className={`w-5 h-5 ${severityColors[issue.severity]} flex-shrink-0 mt-1`} />
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900">{issue.title}</h3>
-                  <p className="text-sm text-gray-600 mt-1">{issue.description}</p>
-                  <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                    <span>Issue ID: {issue.id}</span>
-                    <span>•</span>
-                    <span>Audit: {issue.auditId}</span>
-                    <span>•</span>
-                    <span>Reported: {issue.reportedDate}</span>
-                  </div>
                 </div>
-              </div>
-              <div className="flex flex-col items-end gap-2">
-                <span className={`px-2 py-1 rounded text-xs font-medium ${priorityColors[issue.severity]}`}>
-                  {issue.severity}
-                </span>
-                <button 
-                  onClick={() => setSelectedIssue(issue)}
-                  className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1"
-                >
-                  <Eye className="w-4 h-4" />
-                  Investigate
+
+                <div class="space-y-3" id="issuesList"></div>
+            </div>
+        </div>
+
+        <!-- Schedule Tab -->
+        <div id="content-schedule" class="tab-content hidden">
+            <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-semibold">Audit Scheduling</h2>
+                    <button onclick="showModal('scheduleModal')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Schedule New Audit
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4" id="scheduleGrid"></div>
+            </div>
+        </div>
+
+        <!-- Alerts Tab -->
+        <div id="content-alerts" class="tab-content hidden">
+            <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-semibold">Automated Alerts Configuration</h2>
+                    <button onclick="alert('Alert configuration coming soon')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        Configure Alerts
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="alertsGrid"></div>
+            </div>
+        </div>
+
+        <!-- Reports Tab -->
+        <div id="content-reports" class="tab-content hidden">
+            <div class="bg-white p-8 rounded-lg shadow-sm border border-gray-200">
+                <div class="text-center mb-6">
+                    <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    <h3 class="text-xl font-semibold mb-2">Reports & Analytics</h3>
+                    <p class="text-gray-600">Generate comprehensive audit reports and analytics dashboards</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <button class="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors">
+                        <svg class="w-8 h-8 text-blue-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <p class="font-medium">Financial Report</p>
+                        <p class="text-xs text-gray-600 mt-1">Audit findings summary</p>
+                    </button>
+                    <button class="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors">
+                        <svg class="w-8 h-8 text-green-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                        <p class="font-medium">Compliance Report</p>
+                        <p class="text-xs text-gray-600 mt-1">Regulatory compliance</p>
+                    </button>
+                    <button class="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors">
+                        <svg class="w-8 h-8 text-purple-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        <p class="font-medium">Performance Report</p>
+                        <p class="text-xs text-gray-600 mt-1">Operational metrics</p>
+                    </button>
+                </div>
+                
+                <button onclick="generateReport()" class="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Generate Custom Report
                 </button>
-              </div>
             </div>
-          </div>
-        ))}
-      </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <!-- Schedule Modal -->
+    <div id="scheduleModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full slide-in">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold">Schedule New Audit</h2>
+                    <button onclick="closeModal('scheduleModal')" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Entity</label>
+                    <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Ministry/Department name">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Audit Type</label>
+                    <select class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <option>Financial</option>
+                        <option>Compliance</option>
+                        <option>Performance</option>
+                        <option>Operational</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Scheduled Date</label>
+                    <input type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Assign To</label>
+                    <select class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <option>John Kamara</option>
+                        <option>Fatmata Sesay</option>
+                        <option>Mohamed Bangura</option>
+                        <option>Aminata Koroma</option>
+                        <option>Ibrahim Conteh</option>
+                    </select>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button onclick="closeModal('scheduleModal')" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+                    <button onclick="scheduleAudit()" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Schedule Audit</button>
+                </div>
+            </div>
+        </div>
     </div>
-  );
 
-  return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Building2 className="w-8 h-8 text-blue-600" />
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Audit Service Sierra Leone</h1>
-                <p className="text-sm text-gray-600">Remote Monitoring & Investigation System</p>
-              </div>
+    <!-- Upload Modal -->
+    <div id="uploadModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full slide-in">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold">Upload Documents</h2>
+                    <button onclick="closeModal('uploadModal')" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">System Administrator</p>
-                <p className="text-xs text-gray-600">Last login: Nov 28, 2024</p>
-              </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Select Audit</label>
+                    <select id="uploadAuditSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Document Type</label>
+                    <select class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <option>Financial Statement</option>
+                        <option>Invoice</option>
+                        <option>Contract</option>
+                        <option>Report</option>
+                        <option>Evidence</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Upload File</label>
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition-colors cursor-pointer">
+                        <svg class="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                        <p class="text-sm text-gray-600">Click to browse or drag and drop</p>
+                        <p class="text-xs text-gray-500 mt-1">PDF, DOC, XLS, Images (Max 10MB)</p>
+                    </div>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button onclick="closeModal('uploadModal')" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+                    <button onclick="uploadDocument()" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Upload</button>
+                </div>
             </div>
-          </div>
         </div>
-      </header>
-
-      <nav className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-8">
-            {['dashboard', 'audits', 'issues', 'reports'].map(tab => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`py-4 px-2 border-b-2 font-medium text-sm capitalize transition-colors ${
-                  activeTab === tab
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-        </div>
-      </nav>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {activeTab === 'dashboard' && <DashboardView />}
-        {activeTab === 'audits' && <AuditsView />}
-        {activeTab === 'issues' && <IssuesView />}
-        {activeTab === 'reports' && (
-          <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
-            <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Reports & Analytics</h3>
-            <p className="text-gray-600">Generate comprehensive audit reports and analytics dashboards</p>
-            <button className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-              Generate Report
-            </button>
-          </div>
-        )}
-      </main>
-
-      {selectedAudit && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold">Audit Details: {selectedAudit.id}</h2>
-                <button onClick={() => setSelectedAudit(null)} className="text-gray-500 hover:text-gray-700">✕</button>
-              </div>
-            </div>
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Entity</label>
-                  <p className="text-gray-900">{selectedAudit.entity}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Type</label>
-                  <p className="text-gray-900">{selectedAudit.type}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Status</label>
-                  <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${statusColors[selectedAudit.status]}`}>
-                    {selectedAudit.status}
-                  </span>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Priority</label>
-                  <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${priorityColors[selectedAudit.priority]}`}>
-                    {selectedAudit.priority}
-                  </span>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Assigned To</label>
-                  <p className="text-gray-900">{selectedAudit.assignee}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Start Date</label>
-                  <p className="text-gray-900">{selectedAudit.startDate}</p>
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600">Progress</label>
-                <div className="flex items-center gap-3 mt-2">
-                  <div className="flex-1 bg-gray-200 rounded-full h-3">
-                    <div className="bg-blue-600 h-3 rounded-full" style={{ width: `${selectedAudit.progress}%` }}></div>
-                  </div>
-                  <span className="text-sm font-medium text-gray-900">{selectedAudit.progress}%</span>
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600">Issues Identified</label>
-                <p className="text-gray-900">{selectedAudit.issues} issue(s)</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
-  );
-};
 
-export default AuditMonitoringSystem;
+    <script>
+        // Data
+        const audits = [
+            { id: 'AUD-2024-001', entity: 'Ministry of Health', type: 'Financial', status: 'In Progress', priority: 'High', assignee: 'John Kamara', startDate: '2024-11-01', progress: 65, issues: 3, documents: 12 },
+            { id: 'AUD-2024-002', entity: 'Education Board', type: 'Compliance', status: 'Pending Review', priority: 'Medium', assignee: 'Fatmata Sesay', startDate: '2024-10-15', progress: 90, issues: 1, documents: 8 },
+            { id: 'AUD-2024-003', entity: 'Public Works Dept', type: 'Performance', status: 'Completed', priority: 'Low', assignee: 'Mohamed Bangura', startDate: '2024-09-20', progress: 100, issues: 0, documents: 15 },
+            { id: 'AUD-2024-004', entity: 'Agriculture Ministry', type: 'Financial', status: 'Flagged', priority: 'Critical', assignee: 'Aminata Koroma', startDate: '2024-11-10', progress: 45, issues: 8, documents: 20 },
+            { id: 'AUD-2024-005', entity: 'Transportation Auth', type: 'Operational', status: 'In Progress', priority: 'Medium', assignee: 'Ibrahim Conteh', startDate: '2024-11-15', progress: 30, issues: 2, documents: 6 },
+        ];
+
+        const issues = [
+            { id: 'ISS-001', auditId: 'AUD-2024-004', title: 'Missing documentation for procurement', severity: 'Critical', status: 'Open', reportedDate: '2024-11-20', description: 'Purchase orders worth Le 50M lack proper authorization' },
+            { id: 'ISS-002', auditId: 'AUD-2024-001', title: 'Budget variance exceeds threshold', severity: 'High', status: 'Investigating', reportedDate: '2024-11-18', description: '15% variance in Q3 expenditure requires explanation' },
+            { id: 'ISS-003', auditId: 'AUD-2024-002', title: 'Non-compliance with reporting deadline', severity: 'Medium', status: 'Open', reportedDate: '2024-11-22', description: 'Quarterly reports submitted 10 days late' },
+            { id: 'ISS-004', auditId: 'AUD-2024-004', title: 'Irregularities in payment records', severity: 'Critical', status: 'Escalated', reportedDate: '2024-11-21', description: 'Duplicate payments detected in vendor accounts' },
+        ];
+
+        const scheduledAudits = [
+            { id: 'SCH-001', entity: 'Ministry of Finance', type: 'Financial', scheduledDate: '2024-12-01', assignee: 'John Kamara', status: 'Scheduled' },
+            { id: 'SCH-002', entity: 'Health Services Board', type: 'Compliance', scheduledDate: '2024-12-05', assignee: 'Fatmata Sesay', status: 'Scheduled' },
+            { id: 'SCH-003', entity: 'National Revenue Authority', type: 'Performance', scheduledDate: '2024-12-10', assignee: 'Mohamed Bangura', status: 'Pending Approval' },
+        ];
+
+        const integrations = [
+            { name: 'Ministry of Finance Database', status: 'Connected', lastSync: '2024-11-28 14:30' },
+            { name: 'National Revenue Authority', status: 'Connected', lastSync: '2024-11-28 12:15' },
+            { name: 'Central Bank of Sierra Leone', status: 'Connected', lastSync: '2024-11-28 10:45' },
+            { name: 'Public Procurement Authority', status: 'Pending', lastSync: 'N/A' },
+        ];
+
+        const alerts = [
+            { name: 'Critical Issue Alerts', desc: 'Immediate notification', status: 'Active', recipients: '5 users', method: 'Email + SMS', color: 'red' },
+            { name: 'Milestone Reminders', desc: '3 days before deadline', status: 'Active', recipients: 'All assignees', method: 'Email', color: 'yellow' },
+            { name: 'Document Upload Alerts', desc: 'New document notifications', status: 'Active', recipients: 'Team leads', method: 'In-app', color: 'blue' },
+            { name: 'Completion Alerts', desc: 'Audit completion', status: 'Active', recipients: 'Management', method: 'Email', color: 'green' },
+        ];
+
+        // Functions
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-button').forEach(el => {
+                el.classList.remove('tab-active', 'text-blue-600', 'border-blue-600');
+                el.classList.add('text-gray-600');
+            });
+            
+            document.getElementById('content-' + tabName).classList.remove('hidden');
+            const activeTab = document.getElementById('tab-' + tabName);
+            activeTab.classList.add('tab-active', 'text-blue-600');
+            activeTab.classList.remove('text-gray-600');
+        }
+
+        function toggleNotifications() {
+            const panel = document.getElementById('notificationPanel');
+            panel.classList.toggle('hidden');
+        }
+
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+            if (modalId === 'uploadModal') {
+                const select = document.getElementById('uploadAuditSelect');
+                select.innerHTML = audits.map(a => `<option value="${a.id}">${a.id} - ${a.entity}</option>`).join('');
+            }
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                'In Progress': 'bg-blue-100 text-blue-800',
+                'Pending Review': 'bg-yellow-100 text-yellow-800',
+                'Completed': 'bg-green-100 text-green-800',
+                'Flagged': 'bg-red-100 text-red-800',
+                'Scheduled': 'bg-purple-100 text-purple-800',
+                'Pending Approval': 'bg-orange-100 text-orange-800',
+            };
+            return colors[status] || 'bg-gray-100 text-gray-800';
+        }
+
+        function getPriorityColor(priority) {
+            const colors = {
+                'Critical': 'bg-red-600 text-white',
+                'High': 'bg-orange-500 text-white',
+                'Medium': 'bg-yellow-500 text-white',
+                'Low': 'bg-green-500 text-white',
+            };
+            return colors[priority] || 'bg-gray-500 text-white';
+        }
+
+        function renderAuditsTable() {
+            const tbody = document.getElementById('auditsTableBody');
+            const searchTerm = document.getElementById('searchAudits').value.toLowerCase();
+            const filterStatus = document.getElementById('filterStatus').value;
+
+            const filtered = audits.filter(audit => {
+                const matchesSearch = audit.entity.toLowerCase().includes(searchTerm) || audit.id.toLowerCase().includes(searchTerm);
+                const matchesFilter = filterStatus === 'All' || audit.status === filterStatus;
+                return matchesSearch && matchesFilter;
+            });
+
+            tbody.innerHTML = filtered.map(audit => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${audit.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${audit.entity}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${audit.type}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(audit.status)}">${audit.status}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(audit.priority)}">${audit.priority}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 bg-gray-200 rounded-full h-2 w-24">
+                                <div class="bg-blue-600 h-2 rounded-full" style="width: ${audit.progress}%"></div>
+                            </div>
+                            <span class="text-xs text-gray-600">${audit.progress}%</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${audit.documents}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        ${audit.issues > 0 ? `<span class="text-sm text-red-600">${audit.issues}</span>` : '<span class="text-sm text-gray-400">None</span>'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <button onclick="viewAudit('${audit.id}')" class="text-blue-600 hover:text-blue-800">View</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function filterAudits() {
+            renderAuditsTable();
+        }
+
+        function renderDashboard() {
+            // Recent Activity
+            document.getElementById('recentActivity').innerHTML = audits.slice(0, 4).map(audit => `
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
+                    <div>
+                        <p class="font-medium text-sm">${audit.entity}</p>
+                        <p class="text-xs text-gray-600">${audit.id} • ${audit.type}</p>
+                    </div>
+                    <span class="px-2 py-1 rounded text-xs font-medium ${getStatusColor(audit.status)}">${audit.status}</span>
+                </div>
+            `).join('');
+
+            // Critical Issues
+            document.getElementById('criticalIssues').innerHTML = issues.filter(i => i.severity === 'Critical' || i.severity === 'High').map(issue => `
+                <div class="flex items-start gap-3 p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
+                    <svg class="w-5 h-5 text-${issue.severity === 'Critical' ? 'red' : 'orange'}-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-medium text-sm">${issue.title}</p>
+                        <p class="text-xs text-gray-600">${issue.auditId} • ${issue.reportedDate}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            // Integrations
+            document.getElementById('integrationsList').innerHTML = integrations.map(integration => `
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
+                    <div>
+                        <p class="font-medium text-sm">${integration.name}</p>
+                        <p class="text-xs text-gray-600">Last sync: ${integration.lastSync}</p>
+                    </div>
+                    <span class="px-2 py-1 rounded text-xs font-medium ${integration.status === 'Connected' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${integration.status}</span>
+                </div>
+            `).join('');
+
+            // Scheduled Audits
+            document.getElementById('upcomingSchedule').innerHTML = scheduledAudits.map(audit => `
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
+                    <div>
+                        <p class="font-medium text-sm">${audit.entity}</p>
+                        <p class="text-xs text-gray-600">${audit.scheduledDate} • ${audit.assignee}</p>
+                    </div>
+                    <span class="px-2 py-1 rounded text-xs font-medium ${getStatusColor(audit.status)}">${audit.status}</span>
+                </div>
+            `).join('');
+        }
+
+        function renderIssues() {
+            document.getElementById('issuesList').innerHTML = issues.map(issue => `
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div class="p-4 hover:bg-gray-50 transition-colors">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-start gap-3 flex-1">
+                                <svg class="w-5 h-5 text-${issue.severity === 'Critical' ? 'red' : issue.severity === 'High' ? 'orange' : 'yellow'}-600 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                </svg>
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-gray-900">${issue.title}</h3>
+                                    <p class="text-sm text-gray-600 mt-1">${issue.description}</p>
+                                    <div class="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                                        <span>Issue ID: ${issue.id}</span>
+                                        <span>•</span>
+                                        <span>Audit: ${issue.auditId}</span>
+                                        <span>•</span>
+                                        <span>Reported: ${issue.reportedDate}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="px-2 py-1 rounded text-xs font-medium ${getPriorityColor(issue.severity)}">${issue.severity}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderSchedule() {
+            document.getElementById('scheduleGrid').innerHTML = scheduledAudits.map(audit => `
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                    <div class="flex items-start justify-between mb-3">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <span class="px-2 py-1 rounded text-xs font-medium ${getStatusColor(audit.status)}">${audit.status}</span>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">${audit.entity}</h3>
+                    <div class="space-y-1 text-sm text-gray-600">
+                        <p>ID: ${audit.id}</p>
+                        <p>Type: ${audit.type}</p>
+                        <p>Date: ${audit.scheduledDate}</p>
+                        <p>Assignee: ${audit.assignee}</p>
+                    </div>
+                    <div class="flex gap-2 mt-4">
+                        <button class="flex-1 px-3 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">Edit</button>
+                        <button class="flex-1 px-3 py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700">Cancel</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderAlerts() {
+            const icons = {
+                red: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z',
+                yellow: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
+                blue: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+                green: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
+            };
+
+            document.getElementById('alertsGrid').innerHTML = alerts.map(alert => `
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-${alert.color}-100 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-${alert.color}-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${icons[alert.color]}"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold">${alert.name}</h3>
+                            <p class="text-sm text-gray-600">${alert.desc}</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Status:</span>
+                            <span class="font-medium text-green-600">${alert.status}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Recipients:</span>
+                            <span class="font-medium">${alert.recipients}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Method:</span>
+                            <span class="font-medium">${alert.method}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function viewAudit(auditId) {
+            const audit = audits.find(a => a.id === auditId);
+            alert(`Viewing details for ${audit.entity}\n\nAudit ID: ${audit.id}\nType: ${audit.type}\nStatus: ${audit.status}\nProgress: ${audit.progress}%\nIssues: ${audit.issues}\nDocuments: ${audit.documents}`);
+        }
+
+        function scheduleAudit() {
+            alert('Audit scheduled successfully!');
+            closeModal('scheduleModal');
+        }
+
+        function uploadDocument() {
+            alert('Document uploaded successfully!');
+            closeModal('uploadModal');
+        }
+
+        function exportData() {
+            alert('Exporting audit data to CSV...');
+        }
+
+        function generateReport() {
+            alert('Generating custom report...');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            renderDashboard();
+            renderAuditsTable();
+            renderIssues();
+            renderSchedule();
+            renderAlerts();
+        });
+
+        // Close modals on outside click
+        window.onclick = function(event) {
+            if (event.target.classList.contains('fixed')) {
+                event.target.classList.add('hidden');
+            }
+            if (!event.target.closest('#notificationPanel') && !event.target.closest('button')) {
+                document.getElementById('notificationPanel').classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
