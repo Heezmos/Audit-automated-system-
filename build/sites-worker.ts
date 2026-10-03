@@ -2,8 +2,18 @@ import handler from "vinext/server/fetch-handler";
 import { runWithConnectorBinding } from "../lib/connector-context";
 import type { ConnectorBinding } from "../lib/connector-contract.mjs";
 
+import { secureAPIRequest, secureResponse, securityCSP } from "../lib/security";
+
 export default {
-  fetch(request: Request, env: Cloudflare.Env, ctx: ExecutionContext<{ CONNECTORS?: ConnectorBinding }>) {
+  async fetch(request: Request, env: Cloudflare.Env, ctx: ExecutionContext<{ CONNECTORS?: ConnectorBinding }>) {
+    const guarded = await secureAPIRequest(request);
+    if (guarded instanceof Response) return secureResponse(guarded,request);
+    request = guarded;
+    const nonce = import.meta.env.DEV ? undefined : crypto.randomUUID().replaceAll('-','');
+    const trustedHeaders = new Headers(request.headers);
+    // Overwrite incoming CSP so a caller cannot choose the script nonce.
+    trustedHeaders.set('Content-Security-Policy',securityCSP(nonce,import.meta.env.DEV));
+    request = new Request(request,{headers:trustedHeaders});
     let binding = ctx.props?.CONNECTORS;
     // Local preview emulates the same request-scoped capability. This branch and
     // the auxiliary service binding are absent from production builds.
@@ -23,6 +33,7 @@ export default {
         },
       };
     }
-    return runWithConnectorBinding(binding, () => handler.fetch(request, env, ctx));
+    const response = await runWithConnectorBinding(binding, () => handler.fetch(request, env, ctx));
+    return secureResponse(response,request,nonce,import.meta.env.DEV);
   },
 };

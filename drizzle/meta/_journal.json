@@ -22,6 +22,20 @@
       "when": 1791045063832,
       "tag": "0002_worried_warbound",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1791049845772,
+      "tag": "0003_clear_magdalene",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1791049964570,
+      "tag": "0004_complex_medusa",
+      "breakpoints": true
     }
   ]
 }

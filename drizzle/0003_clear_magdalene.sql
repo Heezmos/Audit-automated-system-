@@ -1,0 +1,1 @@
+ALTER TABLE `audit_members` ADD `user_id` text;

@@ -19,3 +19,7 @@ verifyDepsBeforeRun: false
 optimisticRepeatInstall: false
 overrides:
   miniflare>sharp: 0.35.4
+  '@babel/core': 7.29.6
+  browserslist: 4.28.7
+  baseline-browser-mapping: 2.11.0
+  fast-uri: 3.1.8
