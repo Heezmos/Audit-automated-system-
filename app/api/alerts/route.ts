@@ -1,0 +1,5 @@
+import {getChatGPTUser} from '../../chatgpt-auth';
+import {access,canWrite,canReview} from '../../../lib/access';
+import {record} from '../../../lib/audit';
+import {acknowledgeAlert} from '../../../lib/deadline-monitor';
+export async function POST(req:Request){const user=await getChatGPTUser();if(!user)return Response.json({error:'Sign in required.'},{status:401});try{const actor=await access(user);if(!actor||(!canWrite(actor)&&!canReview(actor)))return Response.json({error:'An auditor or reviewer must acknowledge alerts.'},{status:403});const input=await req.json() as {id?:unknown};if(typeof input.id!=='string'||!/^[a-f0-9]{64}$/.test(input.id))return Response.json({error:'Select a valid alert.'},{status:400});if(!await acknowledgeAlert(actor.owner,input.id,actor))return Response.json({error:'This alert is already acknowledged or no longer open.'},{status:409});return Response.json({ok:true});}catch{return Response.json({error:'The acknowledgement could not be recorded.'},{status:503});}}

@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `audit_members_user_id_unique` ON `audit_members` (`user_id`);

@@ -1,0 +1,24 @@
+# Run behind the operator's HTTPS reverse proxy. Never publish port 8080 publicly.
+services:
+  scanner:
+    build: .
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 64
+    mem_limit: 3g
+    cpus: 2
+    ports: ["127.0.0.1:8080:8080"]
+    environment:
+      AUDIT_SCANNER_TOKEN_FILE: /run/secrets/scanner_token
+    secrets: [scanner_token]
+    volumes: ["signatures:/var/lib/clamav"]
+    tmpfs:
+      - /run/clamav:rw,noexec,nosuid,size=16m,mode=1777
+      - /tmp:rw,noexec,nosuid,size=128m,mode=1777
+secrets:
+  scanner_token:
+    file: /etc/audit-scanner/token
+volumes:
+  signatures:
