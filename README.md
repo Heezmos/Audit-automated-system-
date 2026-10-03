@@ -1,6 +1,6 @@
 # Audit Workspace
 
-First operational foundation for the automated audit system. This is an owner-private release for evaluating the workflow; institutional deployment, independent reviewers, roles, retention policies and external integrations remain planned.
+Second operational release of the automated audit system. The deployment remains private. Auditor, reviewer and viewer memberships are configured inside the application; platform sharing must separately grant a person access before they can sign in. Institutional deployment, retention policies and external integrations remain planned.
 
 ## Working features
 
@@ -11,8 +11,12 @@ First operational foundation for the automated audit system. This is an owner-pr
 - Draft/issued HTML reports with evidence registers; open a downloaded report in a browser to print or save as PDF.
 - Search, stage filters, audit-register CSV export and recorded change history.
 - Optional fictional demonstration cases, clearly marked as sample data.
+- Team roles: owner manages memberships; auditors prepare cases; reviewers approve other authors’ work; viewers read only. Revoked members lose application access.
+- CSV transaction checks (SLE): repeated references, same-date/payee/amount matches, missing records, invalid dates/amounts, configurable large amounts and median outliers. Import limit: 2,000 transactions / 512 KB.
+- Check results preserve the source CSV as evidence. An auditor explicitly converts a flagged exception into an evidence-linked finding; duplicate conversions are blocked.
+- Exceptions are screening results, not proof of fraud or AI conclusions.
 
-Records use Cloudflare D1; evidence bytes use R2. Every API derives the owner from platform-authenticated identity and scopes queries to that owner. Site access remains owner-private. Approval in this release is an owner-recorded workflow action, not independent reviewer sign-off. The file fingerprint records original bytes; it does not establish authenticity of their contents. No AI assessment or government-system integration is active.
+Records use Cloudflare D1; evidence bytes use R2. Every API authenticates the platform visitor, resolves an active workspace membership, checks role permissions and scopes queries to the workspace owner. Site access remains owner-private. Finding authors cannot approve their own findings. Audit authors cannot provide independent audit sign-off. Findings require evidence and an independently recorded approval before audit sign-off; issue requires that sign-off. Role assignment does not send invitations or change platform sharing. The file fingerprint records original bytes; it does not establish authenticity of their contents. No AI assessment or government-system integration is active.
 
 ## Development and deployment
 

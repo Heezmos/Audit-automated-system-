@@ -1,8 +1,8 @@
 import { env } from 'cloudflare:workers';
 export function database() { if (!env.DB) throw new Error('Database unavailable'); return env.DB; }
 export function bucket() { if (!env.BUCKET) throw new Error('Evidence storage unavailable'); return env.BUCKET; }
-export type Finding = { id: string; title: string; severity: string; condition: string; recommendation: string; response: string; approved: boolean; evidenceId: string; due: string };
-export type Audit = { id: string; reference: string; entity: string; title: string; type: string; lead: string; due: string; scope: string; status: string; sample: boolean; findings: Finding[]; created: string };
+export type Finding = { id: string; title: string; severity: string; condition: string; recommendation: string; response: string; approved: boolean; evidenceId: string; due: string; preparedBy?:string; approvedBy?:string; approvedAt?:string; sourceFlag?:string };
+export type Audit = { id: string; reference: string; entity: string; title: string; type: string; lead: string; due: string; scope: string; status: string; sample: boolean; findings: Finding[]; created: string; createdBy?:string; reviewedBy?:string; reviewedAt?:string };
 export const statuses = ['Planning', 'Fieldwork', 'Review', 'Issued', 'Closed'];
 export function clean(value: unknown, limit = 4000) { return typeof value === 'string' ? value.trim().slice(0, limit) : ''; }
 export function record(owner: string, auditId: string, description: string) { return database().prepare('INSERT INTO audit_events (id,owner,audit_id,description,created) VALUES (?,?,?,?,?)').bind(crypto.randomUUID(),owner,auditId,description,new Date().toISOString()); }
