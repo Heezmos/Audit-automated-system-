@@ -1,0 +1,11 @@
+import {getChatGPTUser} from '../../chatgpt-auth';
+import {access} from '../../../lib/access';
+import {database} from '../../../lib/audit';
+import {runDeadlineMonitor,alertCounts} from '../../../lib/deadline-monitor';
+async function authorise(){const user=await getChatGPTUser();if(user){const permission=await access(user);return permission?.role==='Owner'?{owner:permission.owner,actor:permission}:null;}
+ // Shared workspace updater: dispatch enforces this Site's sole-owner private
+ // boundary, including validated service access. It supplies no visitor identity.
+ // Never expose this Worker directly or widen Site sharing with this path enabled.
+ const workspace=await database().prepare('SELECT owner FROM audit_workspace WHERE id=?').bind('main').first<{owner:string}>();return workspace?{owner:workspace.owner,actor:undefined}:null;}
+export async function POST(req:Request){try{const permission=await authorise();if(!permission)return Response.json({error:'The owner must initialise this private workspace.'},{status:403});const input=await req.json();if(!input||typeof input!=='object'||Object.keys(input).length)return Response.json({error:'The monitor accepts an empty request only.'},{status:400});return Response.json({ok:true,...await runDeadlineMonitor(permission.owner,permission.actor)});}catch{return Response.json({error:'Deadline monitoring could not complete. Existing records remain intact.'},{status:503});}}
+export async function GET(){try{const permission=await authorise();if(!permission)return Response.json({error:'Owner access required.'},{status:403});const last=await database().prepare('SELECT created,actor_name AS actorName,data FROM audit_monitor_runs WHERE owner=? ORDER BY created DESC LIMIT 1').bind(permission.owner).first<{created:string;actorName:string;data:string}>();return Response.json({lastRun:last?{created:last.created,actorName:last.actorName,...JSON.parse(last.data)}:null,counts:await alertCounts(permission.owner)});}catch{return Response.json({error:'Monitor status could not be loaded.'},{status:503});}}
