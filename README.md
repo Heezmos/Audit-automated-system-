@@ -1,6 +1,6 @@
 # Audit Workspace
 
-Second operational release of the automated audit system. The deployment remains private. Auditor, reviewer and viewer memberships are configured inside the application; platform sharing must separately grant a person access before they can sign in. Institutional deployment, retention policies and external integrations remain planned.
+Third operational release of the automated audit system. The deployment remains private. Auditor, reviewer and viewer memberships are configured inside the application; platform sharing must separately grant a person access before they can sign in. Institutional deployment, retention policies and external integrations remain planned.
 
 ## Working features
 
@@ -15,6 +15,9 @@ Second operational release of the automated audit system. The deployment remains
 - CSV transaction checks (SLE): repeated references, same-date/payee/amount matches, missing records, invalid dates/amounts, configurable large amounts and median outliers. Import limit: 2,000 transactions / 512 KB.
 - Check results preserve the source CSV as evidence. An auditor explicitly converts a flagged exception into an evidence-linked finding; duplicate conversions are blocked.
 - Exceptions are screening results, not proof of fraud or AI conclusions.
+- Recommendation follow-up records a responsible officer, deadline, corrective action and progress history.
+- Completion submissions require evidence. A different authorised reviewer verifies them or returns them for changes, with a recorded assessment; verified recommendations may be reopened before audit closure.
+- Issued audits accept completion evidence without reopening original findings. Audit closure requires all recommendations to be verified and all institution responses to be recorded. Previously closed audits remain locked.
 
 Records use Cloudflare D1; evidence bytes use R2. Every API authenticates the platform visitor, resolves an active workspace membership, checks role permissions and scopes queries to the workspace owner. Site access remains owner-private. Finding authors cannot approve their own findings. Audit authors cannot provide independent audit sign-off. Findings require evidence and an independently recorded approval before audit sign-off; issue requires that sign-off. Role assignment does not send invitations or change platform sharing. The file fingerprint records original bytes; it does not establish authenticity of their contents. No AI assessment or government-system integration is active.
 
