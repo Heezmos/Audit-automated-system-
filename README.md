@@ -36,3 +36,11 @@ Commands:
 Migration files under `drizzle/` are applied by the hosting platform before deployment. The test harness exercises route handlers with a controlled identity; it does not replace end-to-end hosted sign-in or storage verification.
 
 The original standalone `index.html` is preserved in the GitHub repository as the historical prototype; the application entrypoint is now `app/page.tsx`.
+
+
+### Evidence assistant (prepared; service activation pending)
+The AI workspace supports evidence summaries, questions, and editable draft findings using selected PDF, UTF-8 TXT or CSV evidence. Live generation requires a server-side OPENAI_API_KEY; no key is configured in this deployment. No credentials belong in source control. OPENAI_MODEL optionally overrides gpt-4.1-mini.
+
+Requests accept up to three files, 2 MB each (6 MB total); text is limited to 60,000 characters per file and 120,000 combined. A workspace limit of ten attempts per hour includes failed attempts. Selected evidence is sent to the configured OpenAI service only after an authorised user requests generation.
+
+Text quotations must match source text; line references are derived by the server. PDF quotations and page references require manual checking against the original. Source references establish provenance, not the truth of the model's interpretation. Drafts never create or approve findings automatically: an auditor reviews and saves an unapproved finding. API tests use a mocked provider; live inference and live browser interaction have not been verified.
