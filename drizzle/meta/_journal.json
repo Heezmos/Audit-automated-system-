@@ -36,6 +36,13 @@
       "when": 1791049964570,
       "tag": "0004_complex_medusa",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1791051362639,
+      "tag": "0005_curved_sentinels",
+      "breakpoints": true
     }
   ]
 }
