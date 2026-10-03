@@ -2,7 +2,7 @@ import {z} from 'zod';
 export type AISource={id:string;name:string;hash:string;text?:string;pdf?:boolean};
 export type AICitation={sourceId:string;quote:string;locator:string;quoteMatched:boolean};
 export type AIResult={points:{statement:string;citations:AICitation[]}[];gaps:string[];suggestions:{title:string;severity:string;condition:string;recommendation:string;citations:AICitation[]}[]};
-export type AIRun={id:string;auditId:string;createdBy:string;created:string;mode:string;model:string;question:string;sources:Omit<AISource,'text'>[];result:AIResult};
+export type AIRun={id:string;auditId:string;createdBy:string;created:string;mode:string;model:string;provider?:string;question:string;sources:Omit<AISource,'text'>[];result:AIResult};
 const citation=z.object({sourceId:z.string().max(100),quote:z.string().min(1).max(1200),locator:z.string().max(100)});
 const schema=z.object({points:z.array(z.object({statement:z.string().max(3000),citations:z.array(citation).max(10)})).max(10),gaps:z.array(z.string().max(1500)).max(10),suggestions:z.array(z.object({title:z.string().max(200),severity:z.enum(['Critical','High','Medium','Low']),condition:z.string().max(4000),recommendation:z.string().max(4000),citations:z.array(citation).max(10)})).max(3)});
 const citationJSON={type:'object',additionalProperties:false,properties:{sourceId:{type:'string'},quote:{type:'string'},locator:{type:'string'}},required:['sourceId','quote','locator']};
